@@ -1,31 +1,27 @@
-/* ---------------- WELCOME ANIMATION ---------------- */
+
 
 function runWelcomeAnimation() {
     const overlay = document.getElementById('welcomeOverlay');
     const line1 = document.getElementById('line1');
     const line2 = document.getElementById('line2');
 
-    // 1. Start the fade-in of the lines
     setTimeout(() => {
         line1.classList.add('fade-in');
-    }, 300); // Wait 0.3s before first line
+    }, 300);
 
     setTimeout(() => {
         line2.classList.add('fade-in');
-    }, 1200); // Wait 1.2s before second line
+    }, 1200); 
 
-    // 2. Hide the overlay completely
     setTimeout(() => {
         overlay.classList.add('hidden');
-    }, 3200); // Show content for about 3.2s total
+    }, 3200); 
 
-    // 3. Remove the element from the DOM after transition
     setTimeout(() => {
         overlay.remove();
     }, 4700);
 }
 
-/* ---------------- SPARKLE ANIMATION ---------------- */
 (function sparkle(){
   const n = 18;
   for(let i=0;i<n;i++){
@@ -55,26 +51,22 @@ function runWelcomeAnimation() {
 })();
 
 
-/* ---------------- CONFIG & STATE ---------------- */
-// presets (minutes)
 const PRESETS = [5,10,25,50]; // minutes
 const STORAGE_KEY = 'arboris_web_state_v1';
 
 let state = {
-  garden: [],        // {id, stage (2=mature), createdAt, minutes}
-  sessions: [],      // {when, success, minutes}
+  garden: [], 
+  sessions: [], 
   totalSeconds: 0,
   streakCount: 0,
   lastPlantDate: null
 };
 
-// timer
 let timerSeconds = 25 * 60;
 let timerLeft = timerSeconds;
 let timerRunning = false;
 let timerInterval = null;
 
-// DOM refs (kept for context, no changes needed)
 const tabs = document.querySelectorAll('.tab');
 const tabPanels = document.querySelectorAll('.tabPanel');
 const timerDisplay = document.getElementById('timerDisplay');
@@ -97,7 +89,6 @@ const statTotalMinutes = document.getElementById('statTotalMinutes');
 const statStreak = document.getElementById('statStreak');
 const recentSessionsDiv = document.getElementById('recentSessions');
 
-/* ---------------- STORAGE ---------------- */
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -109,14 +100,12 @@ function saveState(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){ console.warn('save failed', e) }
 }
 
-/* ---------------- UI INIT ---------------- */
 function renderPresets(){
   presetRow.innerHTML = '';
   PRESETS.forEach(p=>{
     const btn = document.createElement('button');
     btn.className = 'preset';
     btn.textContent = p + 'm';
-    // CHANGE 3: Removed 'true' from the call, so it only sets the time, doesn't start.
     btn.addEventListener('click', ()=> setTimerMinutes(p)); 
     presetRow.appendChild(btn);
   });
@@ -130,7 +119,6 @@ function highlightActivePreset(){
   });
 }
 
-// CHANGE 1: Removed 'autoStart' parameter and logic from function body.
 function setTimerMinutes(mins){ 
   timerSeconds = mins * 60;
   timerLeft = timerSeconds;
@@ -141,14 +129,12 @@ function setTimerMinutes(mins){
 function applyCustomMinutes(){
   const v = parseInt(customMinutes.value);
   if(!v || v < 1 || v > 240){ alert('Enter a valid custom minute (1–240).'); return; }
-  // CHANGE 2: Removed 'true' from the call, so it only sets the time, doesn't start.
   setTimerMinutes(v); 
 }
 
 applyCustom.addEventListener('click', applyCustomMinutes);
 renderPresets();
 
-// Tabs routing (No changes needed)
 tabs.forEach(tab=>{
   tab.addEventListener('click',(e)=>{
     tabs.forEach(t=>t.classList.remove('active'));
@@ -160,14 +146,12 @@ tabs.forEach(tab=>{
   });
 });
 
-// set initial active tab based on hash (No changes needed)
 (function initTabFromHash(){
   const which = location.hash.replace('#','') || 'grow';
   const chosen = document.querySelector('.tab[data-tab="'+which+'"]') || document.querySelector('.tab[data-tab="grow"]');
   if(chosen) chosen.click();
 })();
 
-/* ---------------- TIMER ---------------- */
 function secToMMSS(s){
   const m = Math.floor(s/60); const sec = s%60;
   return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
@@ -242,7 +226,7 @@ function completeSession(){
   renderAll();
 }
 
-// small celebration popup
+
 function flashCelebration(){
   const el = document.createElement('div');
   el.textContent = '🌳 Tree grown!';
@@ -254,7 +238,7 @@ function flashCelebration(){
   setTimeout(()=> document.body.removeChild(el), 1700);
 }
 
-// Start/Stop toggle wired
+
 startStopBtn.addEventListener('click', ()=>{
   if(timerRunning){ 
     const confirmStop = confirm('Stop session early? This will count as incomplete.');
@@ -283,7 +267,6 @@ pauseBtn.addEventListener('click', ()=>{
 
 cancelBtn.addEventListener('click', cancelTimer);
 
-/* ---------------- RENDER FUNCTIONS ---------------- */
 
 function renderGardenPreview(){
   gardenPreview.innerHTML = '';
@@ -367,11 +350,8 @@ function renderAll(){
   highlightActivePreset();
 }
 
-/* ---------------- INITIALIZATION ---------------- */
 
-// initial load
 loadState();
-// ensure state properties exist
 state.garden = state.garden || [];
 state.sessions = state.sessions || [];
 state.totalSeconds = state.totalSeconds || 0;
@@ -379,13 +359,12 @@ state.streakCount = state.streakCount || 0;
 
 renderAll();
 
-// set default timer to 25 minutes
 setTimerMinutes(25);
 
-// Run the new welcome animation on initial load
+
 runWelcomeAnimation();
 
-// add keyboard shortcuts for start (space) and pause 'p'
+
 document.addEventListener('keydown', (e)=>{
   if(e.code === 'Space'){
     e.preventDefault();
@@ -393,5 +372,5 @@ document.addEventListener('keydown', (e)=>{
   } else if(e.key === 'p' || e.key === 'P'){ pauseBtn.click(); }
 });
 
-// save periodically every 20 seconds
+
 setInterval(saveState, 20_000);
