@@ -1,25 +1,24 @@
-
-
 function runWelcomeAnimation() {
     const overlay = document.getElementById('welcomeOverlay');
     const line1 = document.getElementById('line1');
     const line2 = document.getElementById('line2');
 
+    // Smooth static fade in
     setTimeout(() => {
         line1.classList.add('fade-in');
-    }, 300);
+    }, 400);
 
     setTimeout(() => {
         line2.classList.add('fade-in');
-    }, 1200); 
+    }, 1400); 
 
     setTimeout(() => {
         overlay.classList.add('hidden');
-    }, 3200); 
+    }, 4000); 
 
     setTimeout(() => {
         overlay.remove();
-    }, 4700);
+    }, 5500);
 }
 
 (function sparkle(){
@@ -50,9 +49,9 @@ function runWelcomeAnimation() {
   }
 })();
 
-
-const PRESETS = [5,10,25,50]; // minutes
+const PRESETS = [5,10,25,50];
 const STORAGE_KEY = 'arboris_web_state_v1';
+const TOTAL_FOREST_SIZE = 21; 
 
 let state = {
   garden: [], 
@@ -72,27 +71,37 @@ const tabPanels = document.querySelectorAll('.tabPanel');
 const timerDisplay = document.getElementById('timerDisplay');
 const progressBar = document.getElementById('progressBar');
 const startStopBtn = document.getElementById('startStopBtn');
-const pauseBtn = document.getElementById('pauseBtn');
-const cancelBtn = document.getElementById('cancelBtn');
 const presetRow = document.getElementById('presetRow');
 const customMinutes = document.getElementById('customMinutes');
 const applyCustom = document.getElementById('applyCustom');
 const stageBox = document.getElementById('stageBox');
 const stageCaption = document.getElementById('stageCaption');
-const gardenPreview = document.getElementById('gardenPreview');
 const gardenGridAll = document.getElementById('gardenGridAll');
 const totalTreesLabel = document.getElementById('totalTreesLabel');
-const historyDiv = document.getElementById('history');
-const clearHistoryBtn = document.getElementById('clearHistory');
 const statTotalTrees = document.getElementById('statTotalTrees');
 const statTotalMinutes = document.getElementById('statTotalMinutes');
 const statStreak = document.getElementById('statStreak');
-const recentSessionsDiv = document.getElementById('recentSessions');
 
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ state = JSON.parse(raw); }
+    if(raw){ 
+        state = JSON.parse(raw); 
+    }
+    
+    // Fill with wasteland slots up to 20 if needed
+    if(state.garden.length < TOTAL_FOREST_SIZE){
+        const currentLen = state.garden.length;
+        for(let i=0; i < (TOTAL_FOREST_SIZE - currentLen); i++){
+            state.garden.push({ 
+                status: 'dead', 
+                createdAt: null, 
+                minutes: 0,
+                fullDate: null,
+                growthHeight: 0
+            });
+        }
+    }
   }catch(e){ console.warn('load failed', e) }
 }
 
@@ -111,6 +120,60 @@ function renderPresets(){
   });
   highlightActivePreset();
 }
+
+
+// Add these to your existing script.js
+
+function renderHistory() {
+    const historyContainer = document.getElementById('history');
+    const recentStatsContainer = document.getElementById('recentSessions');
+    
+    // Clear existing content
+    historyContainer.innerHTML = '';
+    recentStatsContainer.innerHTML = '';
+
+    // Sort sessions: Most recent first
+    const sortedSessions = [...state.sessions].reverse();
+
+    if (sortedSessions.length === 0) {
+        const emptyMsg = '<div class="small muted" style="padding:10px">No sessions yet.</div>';
+        historyContainer.innerHTML = emptyMsg;
+        recentStatsContainer.innerHTML = emptyMsg;
+        return;
+    }
+
+    sortedSessions.forEach(session => {
+        const date = new Date(session.when);
+        const dateString = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Create the HTML template for a session row
+        const sessionHTML = `
+            <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom:1px solid rgba(0,0,0,0.05)">
+                <div>
+                    <span style="color:var(--leaf)">🌳</span> 
+                    <strong>${session.minutes}m</strong>
+                </div>
+                <div class="small muted">${dateString} at ${timeString}</div>
+            </div>
+        `;
+
+        // Append to both the Timer Page history and the Stats Page list
+        historyContainer.insertAdjacentHTML('beforeend', sessionHTML);
+        recentStatsContainer.insertAdjacentHTML('beforeend', sessionHTML);
+    });
+}
+
+// Logic for the Clear History button
+document.getElementById('clearHistory').addEventListener('click', () => {
+    if (confirm("Are you sure? This will clear your history and stats, but keep your trees.")) {
+        state.sessions = [];
+        state.totalSeconds = 0;
+        saveState();
+        renderAll();
+    }
+});
+
 
 function highlightActivePreset(){
   document.querySelectorAll('.preset').forEach(el=>{
@@ -133,7 +196,6 @@ function applyCustomMinutes(){
 }
 
 applyCustom.addEventListener('click', applyCustomMinutes);
-renderPresets();
 
 tabs.forEach(tab=>{
   tab.addEventListener('click',(e)=>{
@@ -142,15 +204,8 @@ tabs.forEach(tab=>{
     const to = tab.getAttribute('data-tab');
     tabPanels.forEach(p=>p.style.display='none');
     document.getElementById(to + 'Tab').style.display = 'block';
-    history.replaceState(null, '', '#' + to);
   });
 });
-
-(function initTabFromHash(){
-  const which = location.hash.replace('#','') || 'grow';
-  const chosen = document.querySelector('.tab[data-tab="'+which+'"]') || document.querySelector('.tab[data-tab="grow"]');
-  if(chosen) chosen.click();
-})();
 
 function secToMMSS(s){
   const m = Math.floor(s/60); const sec = s%60;
@@ -161,216 +216,214 @@ function updateTimerDisplay(){
   timerDisplay.textContent = secToMMSS(timerLeft);
   const pct = ((timerSeconds - timerLeft) / timerSeconds) * 100;
   progressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
-  // update stage visual
-  const progress = (timerSeconds - timerLeft) / timerSeconds; // 0 to 1
-  if(progress < 0.33){ stageBox.textContent = '🌱'; stageCaption.textContent = 'Seed'; }
-  else if(progress < 0.66){ stageBox.textContent = '🌿'; stageCaption.textContent = 'Sprout'; }
-  else if(progress < 1){ stageBox.textContent = '🌳'; stageCaption.textContent = 'Tree'; }
-  else { stageBox.textContent = '🌲'; stageCaption.textContent = 'Mature'; }
+  
+  const progress = (timerSeconds - timerLeft) / timerSeconds; 
+  if(progress < 0.25){ stageBox.textContent = '🪾'; stageCaption.textContent = 'Seeking signs of life...'; }
+  else if(progress < 0.50){ stageBox.textContent = '🪵'; stageCaption.textContent = 'Roots taking hold'; }
+  else if(progress < 0.75){ stageBox.textContent = '🌿'; stageCaption.textContent = 'Restoration in progress'; }
+  else { stageBox.textContent = '🌳'; stageCaption.textContent = 'Forest restored!'; }
 }
 
 function startTimer(){
   if(timerRunning) return;
   timerRunning = true;
   startStopBtn.textContent = 'Stop';
-  pauseBtn.disabled = false;
-  startStopBtn.classList.add('btnPrimary');
-  
   timerInterval = setInterval(()=>{
-    if(timerLeft <= 0){
-      completeSession();
-      return;
-    }
+    if(timerLeft <= 0){ completeSession(); return; }
     timerLeft--;
     updateTimerDisplay();
   }, 1000);
 }
 
-function pauseTimer(){
-  if(!timerRunning) return;
-  timerRunning = false;
-  clearInterval(timerInterval);
-  startStopBtn.textContent = 'Start';
-  pauseBtn.disabled = true;
-}
-
-function cancelTimer(){
-  const confirmCancel = confirm('Cancel this session? Progress will be lost.');
-  if(!confirmCancel) return;
-  clearInterval(timerInterval);
-  timerRunning = false;
-  timerLeft = timerSeconds;
-  startStopBtn.textContent = 'Start';
-  pauseBtn.disabled = true;
-  updateTimerDisplay();
-}
-
 function completeSession(){
   clearInterval(timerInterval);
   timerRunning = false;
-  timerLeft = timerSeconds;
   
-  const now = Date.now();
-  state.garden.push({ id: now, stage: 3, createdAt: now, minutes: Math.round(timerSeconds/60) });
+  const now = new Date();
+  const dateStr = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const sessionMins = Math.round(timerSeconds/60);
   
-  state.sessions.push({ when: now, success: true, minutes: Math.round(timerSeconds/60) });
+  // Calculate a fun height (roughly 0.1 to 0.3 feet per minute)
+  const growth = (sessionMins * (0.1 + Math.random() * 0.2)).toFixed(1);
+
+  // Find the first dead tree to restore
+  const targetIdx = state.garden.findIndex(t => t.status === 'dead');
+  
+  const newTreeData = { 
+    id: Date.now(), 
+    status: 'alive', 
+    minutes: sessionMins,
+    fullDate: `${dateStr} @ ${timeStr}`,
+    growthHeight: growth
+  };
+
+  if(targetIdx !== -1) {
+      state.garden[targetIdx] = newTreeData;
+  } else {
+      state.garden.push(newTreeData);
+  }
+  
+  state.sessions.push({ when: Date.now(), success: true, minutes: sessionMins });
   state.totalSeconds += timerSeconds;
   
-  const today = new Date().toISOString().slice(0,10);
-  if(state.lastPlantDate !== today) {
-    state.lastPlantDate = today;
+  const todayKey = now.toISOString().slice(0,10);
+  if(state.lastPlantDate !== todayKey) {
+    state.lastPlantDate = todayKey;
     state.streakCount = (state.streakCount || 0) + 1;
   }
+
+  timerLeft = timerSeconds;
   saveState();
   flashCelebration();
   renderAll();
+  startStopBtn.textContent = 'Start';
 }
-
 
 function flashCelebration(){
   const el = document.createElement('div');
-  el.textContent = '🌳 Tree grown!';
+  el.textContent = '🌳 Life Restored!';
   Object.assign(el.style,{
-    position:'fixed', left:'50%', top:'14%', transform:'translateX(-50%)', background:'linear-gradient(90deg,#fffbe8,#f6fff1)', padding:'12px 18px', borderRadius:'12px', boxShadow:'0 20px 40px rgba(60,120,70,0.12)', zIndex:9999, fontWeight:800, transition: 'opacity 0.5s ease-out'
+    position:'fixed', left:'50%', top:'14%', transform:'translateX(-50%)', background:'white', padding:'12px 18px', borderRadius:'12px', boxShadow:'0 20px 40px rgba(0,0,0,0.1)', zIndex:9999, fontWeight:800, transition: 'opacity 0.5s'
   });
   document.body.appendChild(el);
   setTimeout(()=> el.style.opacity = '0', 1200);
-  setTimeout(()=> document.body.removeChild(el), 1700);
+  setTimeout(()=> el.remove(), 1700);
 }
-
 
 startStopBtn.addEventListener('click', ()=>{
   if(timerRunning){ 
-    const confirmStop = confirm('Stop session early? This will count as incomplete.');
-    if(!confirmStop) return;
+    if(!confirm('Stop and lose progress?')) return;
     clearInterval(timerInterval);
     timerRunning = false;
-    
-    const elapsed = timerSeconds - timerLeft;
-    state.sessions.push({ when: Date.now(), success: false, minutes: Math.round(elapsed/60) });
-    saveState();
-    
     timerLeft = timerSeconds;
     updateTimerDisplay();
-    renderAll();
     startStopBtn.textContent = 'Start';
-    pauseBtn.disabled = true;
-  } else {
-    startTimer();
-    startStopBtn.textContent = 'Stop';
-  }
+  } else { startTimer(); }
 });
 
-pauseBtn.addEventListener('click', ()=>{
-  if(timerRunning) pauseTimer(); else startTimer();
+let selectedTreeIndex = null;
+
+function renderGardenAll() {
+    gardenGridAll.innerHTML = '';
+    let aliveCount = 0;
+
+    state.garden.forEach((t, index) => {
+        const el = document.createElement('div');
+        el.className = t.status === 'alive' ? 'gardenItem' : 'gardenItem dead-tree';
+        
+        const emoji = t.status === 'alive' ? '🌳' : '🪾';
+        const label = t.status === 'alive' ? (t.name || 'Restored') : 'Needs Restoration';
+        
+        el.innerHTML = `
+            <div style="font-size:32px">${emoji}</div>
+            <div class="status-label">${label}</div>
+        `;
+
+        el.onclick = () => handleTreeClick(index);
+        gardenGridAll.appendChild(el);
+        if(t.status === 'alive') aliveCount++;
+    });
+    
+    totalTreesLabel.textContent = `${aliveCount} / ${state.garden.length}`;
+}
+
+let originalName = "";
+
+function handleTreeClick(index) {
+    selectedTreeIndex = index;
+    const tree = state.garden[index];
+    const modal = document.getElementById('treeModal');
+    const nameInput = document.getElementById('treeNameInput');
+    const saveBtn = document.getElementById('saveTreeBtn');
+    
+    // Reset save button
+    saveBtn.style.display = 'none';
+
+    if (tree.status === 'dead') {
+        document.getElementById('aliveDetails').style.display = 'none';
+        document.getElementById('deadDetails').style.display = 'block';
+        document.getElementById('modalEmoji').textContent = '🪾';
+        nameInput.value = "Wasteland";
+        nameInput.disabled = true; // Prevent editing dead tree names
+        nameInput.style.background = "transparent";
+    } else {
+        document.getElementById('aliveDetails').style.display = 'block';
+        document.getElementById('deadDetails').style.display = 'none';
+        document.getElementById('modalEmoji').textContent = '🌳';
+        
+        // Set name logic
+        originalName = tree.name || "Focus Tree";
+        nameInput.value = originalName;
+        nameInput.disabled = false;
+        nameInput.style.background = "rgba(0,0,0,0.03)";
+
+        document.getElementById('modalStats').innerHTML = `
+            <p>Restored: ${tree.fullDate}</p>
+            <p>Focus Time: ${tree.minutes}m | Growth: ${tree.growthHeight}ft</p>
+        `;
+    }
+    modal.style.display = 'flex';
+}
+
+// Check for changes to show/hide Save button
+document.getElementById('treeNameInput').addEventListener('input', (e) => {
+    const saveBtn = document.getElementById('saveTreeBtn');
+    const currentName = e.target.value;
+    
+    if (currentName !== originalName && currentName.trim() !== "") {
+        saveBtn.style.display = 'block';
+    } else {
+        saveBtn.style.display = 'none';
+    }
 });
 
-cancelBtn.addEventListener('click', cancelTimer);
+document.getElementById('saveTreeBtn').onclick = () => {
+    const newName = document.getElementById('treeNameInput').value;
+    if (selectedTreeIndex !== null) {
+        state.garden[selectedTreeIndex].name = newName;
+        saveState();
+        renderGardenAll();
+        closeModal();
+    }
+};
 
-
-function renderGardenPreview(){
-  gardenPreview.innerHTML = '';
-  const recent = state.garden.slice(-6).reverse();
-  if(recent.length === 0){
-    gardenPreview.innerHTML = '<div class="gardenPlaceholder">No trees yet<br><small class="small">Complete a session to plant</small></div>';
-    return;
-  }
-  recent.forEach(t=>{
-    const el = document.createElement('div');
-    el.className = 'gardenItem';
-    const emoji = t.stage >= 3 ? '🌲' : t.stage === 2 ? '🌳' : t.stage === 1 ? '🌿' : '🌱';
-    el.innerHTML = `<div style="font-size:30px">${emoji}</div><div class="small">${t.minutes}m</div>`;
-    gardenPreview.appendChild(el);
-  });
+function closeModal() {
+    document.getElementById('treeModal').style.display = 'none';
 }
 
-function renderGardenAll(){
-  gardenGridAll.innerHTML = '';
-  if(state.garden.length === 0){
-    gardenGridAll.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted)">No trees yet — complete a focus session to plant your first tree.</div>';
-    totalTreesLabel.textContent = '0';
-    return;
-  }
-  state.garden.slice().reverse().forEach((t,idx)=>{
-    const el = document.createElement('div');
-    el.className = 'gardenItem';
-    const emoji = t.stage >= 3 ? '🌲' : t.stage === 2 ? '🌳' : t.stage === 1 ? '🌿' : '🌱';
-    el.innerHTML = `<div style="font-size:36px">${emoji}</div><div class="small">Planted ${new Date(t.createdAt).toLocaleString()}</div>`;
-    el.addEventListener('click', ()=> alert(`Planted: ${new Date(t.createdAt).toLocaleString()}\nMinutes: ${t.minutes}`));
-    gardenGridAll.appendChild(el);
-  });
-  totalTreesLabel.textContent = state.garden.length;
-}
+document.getElementById('saveTreeBtn').onclick = () => {
+    const newName = document.getElementById('treeNameInput').value;
+    if (selectedTreeIndex !== null) {
+        state.garden[selectedTreeIndex].name = newName;
+        saveState();
+        renderGardenAll();
+        closeModal();
+    }
+};
 
-function renderHistory(){
-  historyDiv.innerHTML = '';
-  const rows = state.sessions.slice().reverse();
-  if(rows.length === 0){ historyDiv.innerHTML = '<div class="small" style="color:var(--muted)">No sessions yet</div>'; return; }
-  rows.forEach(s=>{
-    const d = new Date(s.when);
-    const el = document.createElement('div');
-    el.style.padding='8px 0';
-    el.innerHTML = `<div style="display:flex;justify-content:space-between;"><div>${d.toLocaleString()}</div><div style="font-weight:800">${s.success ? '✅' : '✖️'} ${s.minutes}m</div></div>`;
-    historyDiv.appendChild(el);
-  });
-}
-
-clearHistoryBtn.addEventListener('click', ()=>{
-  if(!confirm('Clear session history? This cannot be undone.')) return;
-  state.sessions = [];
-  state.garden = [];
-  state.totalSeconds = 0;
-  state.streakCount = 0;
-  saveState();
-  renderAll();
-});
+// Close modal if clicking background
+document.getElementById('treeModal').onclick = (e) => {
+    if(e.target.id === 'treeModal') closeModal();
+};
 
 function renderStats(){
-  statTotalTrees.textContent = state.garden.length;
+  const aliveCount = state.garden.filter(t => t.status === 'alive').length;
+  statTotalTrees.textContent = aliveCount;
   statTotalMinutes.textContent = Math.round(state.totalSeconds / 60);
   statStreak.textContent = state.streakCount || 0;
-
-  recentSessionsDiv.innerHTML = '';
-  const recent = state.sessions.slice().reverse().slice(0,20);
-  if(recent.length === 0){ recentSessionsDiv.textContent = 'No sessions yet'; return; }
-  recent.forEach(s=>{
-    const row = document.createElement('div');
-    const d = new Date(s.when);
-    row.style.padding='6px 0';
-    row.innerHTML = `<div style="display:flex;justify-content:space-between"><div>${d.toLocaleString()}</div><div>${s.success ? '✅' : '✖️'} ${s.minutes}m</div></div>`;
-    recentSessionsDiv.appendChild(row);
-  });
 }
 
-function renderAll(){
-  renderGardenPreview();
-  renderGardenAll();
-  renderHistory();
-  renderStats();
-  highlightActivePreset();
+function renderAll() {
+    renderGardenAll();
+    renderStats();
+    renderHistory(); // <--- Add this line
 }
-
 
 loadState();
-state.garden = state.garden || [];
-state.sessions = state.sessions || [];
-state.totalSeconds = state.totalSeconds || 0;
-state.streakCount = state.streakCount || 0;
-
 renderAll();
-
+renderPresets();
 setTimerMinutes(25);
-
-
 runWelcomeAnimation();
-
-
-document.addEventListener('keydown', (e)=>{
-  if(e.code === 'Space'){
-    e.preventDefault();
-    startStopBtn.click();
-  } else if(e.key === 'p' || e.key === 'P'){ pauseBtn.click(); }
-});
-
 
 setInterval(saveState, 20_000);

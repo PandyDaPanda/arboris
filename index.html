@@ -137,6 +137,30 @@
   
   </div>
 
+<div id="treeModal" class="modal-overlay">
+    <div class="modal-card">
+        <div id="modalEmoji" style="font-size: 60px; margin-bottom: 10px;">🌳</div>
+        
+        <div id="nameContainer" style="margin-bottom: 15px;">
+            <input type="text" id="treeNameInput" class="name-input" 
+                   style="font-size: 20px; font-weight: 700; color: var(--leaf); border: none; background: rgba(0,0,0,0.03); width: 100%;" 
+                   placeholder="Focus Tree">
+        </div>
+
+        <div id="aliveDetails">
+            <div id="modalStats" class="small muted"></div>
+            <button class="btnPrimary" id="saveTreeBtn" style="width: 100%; margin-top: 20px; display: none;">Save Changes</button>
+        </div>
+
+        <div id="deadDetails" style="display:none; margin: 20px 0;">
+            <p><strong>Focus to restore this tree first!</strong></p>
+        </div>
+
+        <button class="btnGhost" onclick="closeModal()" style="margin-top: 15px; width: 100%;">Close</button>
+    </div>
+</div>
+
+
   <script src="script.js"></script>
 </body>
 </html>
