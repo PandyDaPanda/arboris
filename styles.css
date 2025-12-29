@@ -279,3 +279,98 @@ button{font-family:inherit; border:none}
 #line2 { font-size: 84px; font-family: 'Quicksand', serif; color: var(--leaf); font-weight: 700; letter-spacing: 2px; }
 
 .sparkle{ position:fixed; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.9); pointer-events:none; z-index:2 }
+
+/* Add to styles.css */
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--glass);
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.leaderboard-item:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.leaderboard-item .rank {
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--leaf);
+  width: 40px;
+  text-align: center;
+}
+
+.leaderboard-item .user-info {
+  flex-grow: 1;
+}
+
+.leaderboard-item .username {
+  font-weight: 800;
+  color: var(--leaf);
+}
+
+.leaderboard-item .user-stats {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.leaderboard-item .forest-count {
+  background: linear-gradient(90deg, var(--mint), var(--leaf));
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.forests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.forest-card {
+  background: var(--glass);
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.05);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.forest-card:hover {
+  background: white;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.forest-card .forest-emoji {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.forest-card .forest-date {
+  font-weight: 800;
+  color: var(--leaf);
+  margin-bottom: 4px;
+}
+
+.forest-card .forest-stats {
+  font-size: 12px;
+  color: var(--muted);
+}
