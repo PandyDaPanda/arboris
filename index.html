@@ -15,16 +15,54 @@
       <div class="welcome-text-line" id="line2" style="transition-delay: 0.8s;">Arboris</div>
     </div>
   </div>
-  <div class="app" role="application" aria-label="Arboris prototype app">
-    <div style="display:flex;align-items:center;gap:8px">
-        <nav class="tabs" role="tablist" aria-label="Main">
-          <button class="tab active" data-tab="grow" role="tab" aria-selected="true">Grow Timer</button>
-          <button class="tab" data-tab="garden" role="tab">Forest</button>
-          <button class="tab" data-tab="stats" role="tab">Stats</button>
-          <button class="tab" data-tab="leaderboard" role="tab">Leaderboard</button>
-        </nav>
-      </div>
+<div class="app" role="application">
+<header class="top-bar">
+  <div class="brand-group">
+    <h1 class="playfair">Arboris</h1>
+  </div>
+
+<div class="user-controls">
+  <div id="userDisplay" class="user-info-chip">
+    <span id="displayUsername">Guest</span>
+    <button class="btnPrimary small" id="authBtn">Login / Sign Up</button>
+    <button class="btnGhost small" id="logoutBtn" style="display:none; margin-left:10px;">Logout</button>
+  </div>
+</div>
+</header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="grow">Grow Timer</button>
+    <button class="tab" data-tab="garden">Forests</button>
+    <button class="tab" data-tab="stats">Stats</button>
+    <button class="tab" data-tab="leaderboard">Community</button>
+  </nav>
+  </div>
+
+<div id="authModal" class="modal-overlay">
+  <div class="modal-card">
+    <h2 id="authTitle">Create Account</h2>
+    <input type="text" id="usernameInput" class="name-input" placeholder="Enter Username">
+    <div style="margin-top:15px; display:flex; gap:10px;">
+      <button class="btnPrimary" id="saveUserBtn" style="flex:1">Save</button>
+      <button class="btnGhost" onclick="closeAuthModal()">Cancel</button>
     </div>
+  </div>
+</div>
+
+<div id="newForestModal" class="modal-overlay">
+  <div class="modal-card">
+    <h2>Start New Forest</h2>
+    <input type="text" id="forestNameInput" class="name-input" placeholder="Forest Name (e.g. Work, Study)">
+    <div class="small muted" style="margin: 15px 0 5px;">Number of trees to restore:</div>
+    <select id="treeCountInput" class="custom-select" style="width:100%">
+      <option value="9">Small (9 trees)</option>
+      <option value="21" selected>Standard (21 trees)</option>
+      <option value="40">Large (40 trees)</option>
+    </select>
+    <button class="btnPrimary" id="confirmNewForest" style="width:100%; margin-top:20px;">Grow Forest</button>
+    <button class="btnGhost" onclick="closeForestModal()" style="width:100%; margin-top:10px;">Cancel</button>
+  </div>
+</div>
 
     <div class="card" id="mainCard">
       <div id="growTab" class="tabPanel">
@@ -84,25 +122,33 @@
         </div>
       </div>
 
-      <div id="gardenTab" class="tabPanel" style="display:none">
-        <div>
-          <h2 style="margin-top:6px;color:var(--leaf)">Your Forest</h2>
-          <p class="small">Every completed session adds a tree. Click a tree to see details. Replace these placeholders with your art assets.</p>
-
-          <div style="margin-top:12px" class="grid">
-            <div style="grid-column:1/-1">
-              <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                  <div style="font-weight:800">All Trees</div>
-                  <div class="small">Total: <span id="totalTreesLabel">0</span></div>
-                </div>
-
-                <div style="margin-top:12px" class="gardenGrid" id="gardenGridAll"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+<div id="gardenTab" class="tabPanel" style="display:none">
+  <div class="card" style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+      <div>
+        <h2 style="margin:0; color:var(--leaf)">Your Forests</h2>
+        <p class="small" style="margin: 5px 0 0 0;">Manage and switch between your different restoration projects.</p>
       </div>
+      
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <select id="forestSelector" class="custom-select"></select>
+        <button class="btnPrimary" id="createNewForestBtn" style="padding: 10px 20px;">+ New Forest</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div style="grid-column:1/-1">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:800">Current Grid</div>
+          <div class="small">Restored: <span id="totalTreesLabel">0</span></div>
+        </div>
+        <div style="margin-top:12px" class="gardenGrid" id="gardenGridAll"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
       <div id="statsTab" class="tabPanel" style="display:none">
         <div>
@@ -164,33 +210,21 @@
   
   </div>
 
-<div id="userProfileModal" class="modal-overlay">
-  <div class="modal-card" style="max-width:500px">
-    <button class="btnGhost" onclick="closeUserProfile()" style="position:absolute;top:15px;right:15px">×</button>
-    
-    <div id="profileHeader" style="display:flex;align-items:center;gap:20px;margin-bottom:25px">
-      <div style="font-size:50px;background:var(--glass);width:80px;height:80px;border-radius:20px;display:flex;align-items:center;justify-content:center">🌲</div>
-      <div>
-        <h2 id="profileUsername" style="margin:0;color:var(--leaf)">Username</h2>
-        <div class="small" id="profileStats">0 forests • 0 trees • 0 minutes</div>
-      </div>
-    </div>
+<div id="userProfileModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+        <h2 id="profileUsername">Username</h2>
+        <p id="profileStats" class="small muted"></p>
+        <hr>
+        
+        <div id="profileForests" class="forest-grid"></div>
 
-    <div style="background:var(--beige-2);padding:20px;border-radius:16px;margin-bottom:20px">
-      <div style="font-weight:800;margin-bottom:12px;color:var(--leaf)">Completed Forests</div>
-      <div id="profileForests" class="forests-grid">
-        <!-- User's forests will appear here -->
-      </div>
-    </div>
+<div id="forestDetailView" style="display:none; margin-top:15px;">
+    <div class="detail-header"></div>
+    <div id="forestGridDetail"></div>
+</div>
 
-    <div id="forestDetailView" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
-        <div style="font-weight:800;color:var(--leaf)">Forest Details</div>
-        <button class="btnGhost" onclick="backToProfile()">← Back</button>
-      </div>
-      <div id="forestGridDetail" class="gardenGrid" style="margin-top:15px"></div>
+        <button onclick="closeUserProfile()" class="btnPrimary" style="margin-top:20px;">Close</button>
     </div>
-  </div>
 </div>
 
 <div id="treeModal" class="modal-overlay">

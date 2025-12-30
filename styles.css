@@ -374,3 +374,52 @@ button{font-family:inherit; border:none}
   font-size: 12px;
   color: var(--muted);
 }
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.brand-group { display: flex; align-items: center; gap: 15px; }
+.user-info-chip {
+  background: var(--glass);
+  padding: 6px 16px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.custom-select {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: white;
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--leaf);
+}
+.btnPrimary.small { padding: 6px 12px; font-size: 12px; }
+.playfair { font-family: 'Quicksand', serif; color: var(--leaf); margin: 0; }
+
+/* Styling for the forest controls inside the tab */
+#gardenTab .custom-select {
+    min-width: 200px;
+    border: 2px solid var(--mint);
+}
+
+#gardenTab #createNewForestBtn {
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+/* Ensure the layout stacks nicely on mobile */
+@media (max-width: 600px) {
+    #gardenTab .card div {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    #gardenTab .custom-select {
+        width: 100%;
+    }
+}
