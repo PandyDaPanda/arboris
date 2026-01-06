@@ -54,7 +54,7 @@ const STORAGE_KEY = 'arboris_web_state_v2';
 const TOTAL_FOREST_SIZE = 21;
 const MAX_SAVED_FORESTS = 10;
 
-// Update your initial state
+ 
 let state = {
     username: "Guest",
     activeForestId: 0,
@@ -62,7 +62,7 @@ let state = {
         {
             id: Date.now(),
             name: "My First Forest",
-            treeCount: 9, // Changed default to 9
+            treeCount: 9,  
             garden: [] 
         }
     ],
@@ -72,19 +72,19 @@ let state = {
     lastPlantDate: null
 };
 
-// HELPER: Get Current Active Forest
+ 
 function getActiveForest() {
     return state.forests.find(f => f.id === state.activeForestId) || state.forests[0];
 }
 
-// UPDATE: loadState to handle the new structure
+ 
 function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
         state = JSON.parse(raw);
     }
     
-    // Ensure the active forest has its garden initialized
+ 
     state.forests.forEach(f => {
         if (f.garden.length < f.treeCount) {
             while (f.garden.length < f.treeCount) {
@@ -99,8 +99,7 @@ function loadState() {
     renderForestSelector();
 }
 
-// AUTH LOGIC
-// AUTH LOGIC
+ 
 const authBtn = document.getElementById('authBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
@@ -111,7 +110,7 @@ logoutBtn.onclick = () => {
         state.username = "Guest";
         saveState();
         updateUserUI();
-        renderLeaderboard(); // Refresh leaderboard to show Guest
+        renderLeaderboard();  
     }
 };
 
@@ -122,7 +121,7 @@ document.getElementById('saveUserBtn').onclick = () => {
         updateUserUI();
         closeAuthModal();
         saveState();
-        renderLeaderboard(); // Refresh leaderboard to show new name
+        renderLeaderboard(); 
     }
 };
 
@@ -130,8 +129,7 @@ function updateUserUI() {
     const displayUsername = document.getElementById('displayUsername');
     displayUsername.textContent = state.username;
     
-    // Toggle buttons based on login status
-    if (state.username === "Guest") {
+     if (state.username === "Guest") {
         authBtn.style.display = "block";
         logoutBtn.style.display = "none";
     } else {
@@ -145,8 +143,7 @@ function updateUserUI() {
 
 function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 
-// FOREST MANAGEMENT LOGIC
-document.getElementById('createNewForestBtn').onclick = () => {
+ document.getElementById('createNewForestBtn').onclick = () => {
     document.getElementById('newForestModal').style.display = 'flex';
 };
 
@@ -190,8 +187,7 @@ document.getElementById('forestSelector').onchange = (e) => {
 
 function closeForestModal() { document.getElementById('newForestModal').style.display = 'none'; }
 
-// Only the current user - no fake people
-const mockUsers = [
+ const mockUsers = [
     {
         username: state.username,
         userId: "current_user",
@@ -252,12 +248,10 @@ function renderHistory() {
     const historyContainer = document.getElementById('history');
     const recentStatsContainer = document.getElementById('recentSessions');
 
-    // Clear existing content
-    historyContainer.innerHTML = '';
+     historyContainer.innerHTML = '';
     recentStatsContainer.innerHTML = '';
 
-    // Sort sessions: Most recent first
-    const sortedSessions = [...state.sessions].reverse();
+     const sortedSessions = [...state.sessions].reverse();
 
     if (sortedSessions.length === 0) {
         const emptyMsg = '<div class="small muted" style="padding:10px">No sessions yet.</div>';
@@ -271,8 +265,7 @@ function renderHistory() {
         const dateString = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
         const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        // Create the HTML template for a session row
-        const sessionHTML = `
+         const sessionHTML = `
             <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom:1px solid rgba(0,0,0,0.05)">
                 <div>
                     <span style="color:var(--leaf)">🌳</span> 
@@ -282,14 +275,12 @@ function renderHistory() {
             </div>
         `;
 
-        // Append to both the Timer Page history and the Stats Page list
-        historyContainer.insertAdjacentHTML('beforeend', sessionHTML);
+         historyContainer.insertAdjacentHTML('beforeend', sessionHTML);
         recentStatsContainer.insertAdjacentHTML('beforeend', sessionHTML);
     });
 }
 
-// Logic for the Clear History button
-document.getElementById('clearHistory').addEventListener('click', () => {
+ document.getElementById('clearHistory').addEventListener('click', () => {
     if (confirm("Are you sure? This will clear your history and stats, but keep your trees.")) {
         state.sessions = [];
         state.totalSeconds = 0;
@@ -332,8 +323,7 @@ tabs.forEach(tab => {
         tabPanels.forEach(p => p.style.display = 'none');
         document.getElementById(to + 'Tab').style.display = 'block';
 
-        // If switching to leaderboard tab, refresh leaderboard
-        if (to === 'leaderboard') {
+         if (to === 'leaderboard') {
             renderLeaderboard();
         }
     });
@@ -350,8 +340,7 @@ function updateTimerDisplay() {
     const pct = ((timerSeconds - timerLeft) / timerSeconds) * 100;
     progressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
 
-    // Simplified logic: Show wasteland while running, alive tree only when finished
-    if (timerLeft > 0) {
+     if (timerLeft > 0) {
         stageBox.textContent = '🪾';
         stageCaption.textContent = 'Restoring the wasteland...';
     } else {
@@ -398,8 +387,7 @@ function completeSession() {
 if (targetIdx !== -1) {
     activeForest.garden[targetIdx] = newTreeData;
     
-    // Check if the forest is full based on its OWN specific size
-    const newAliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
+     const newAliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
     
     if (newAliveCount >= activeForest.treeCount) { 
         activeForest.isComplete = true; 
@@ -407,8 +395,7 @@ if (targetIdx !== -1) {
         flashForestComplete();
     }
 }
-    // Global Stats update
-    state.sessions.push({ when: Date.now(), success: true, minutes: sessionMins });
+     state.sessions.push({ when: Date.now(), success: true, minutes: sessionMins });
     state.totalSeconds += timerSeconds;
 
     const todayKey = now.toISOString().slice(0, 10);
@@ -425,24 +412,20 @@ if (targetIdx !== -1) {
 }
 
 function archiveForest() {
-    // Create a copy of the completed forest
-    const completedForest = {
+     const completedForest = {
         id: 'forest_' + Date.now(),
         completedDate: new Date().toISOString().slice(0, 10),
         trees: [...state.garden],
         totalMinutes: state.garden.reduce((sum, tree) => sum + tree.minutes, 0)
     };
 
-    // Add to completed forests
-    state.completedForests.unshift(completedForest);
+     state.completedForests.unshift(completedForest);
 
-    // Keep only last MAX_SAVED_FORESTS
-    if (state.completedForests.length > MAX_SAVED_FORESTS) {
+     if (state.completedForests.length > MAX_SAVED_FORESTS) {
         state.completedForests.pop();
     }
 
-    // Update current user in mockUsers
-    const currentUser = mockUsers.find(u => u.userId === "current_user");
+     const currentUser = mockUsers.find(u => u.userId === "current_user");
     if (currentUser) {
         currentUser.completedForests++;
         currentUser.totalTrees += TOTAL_FOREST_SIZE;
@@ -450,7 +433,6 @@ function archiveForest() {
         currentUser.forests.unshift(completedForest);
     }
 
-    // Reset current garden with dead trees
     state.garden = Array(TOTAL_FOREST_SIZE).fill().map(() => ({
         status: 'dead',
         createdAt: null,
@@ -459,8 +441,7 @@ function archiveForest() {
         growthHeight: 0
     }));
 
-    // Show celebration
-    flashForestComplete();
+     flashForestComplete();
 }
 
 function flashCelebration() {
@@ -520,13 +501,12 @@ startStopBtn.addEventListener('click', () => {
         updateTimerDisplay();
         startStopBtn.textContent = 'Start';
     } else {
-        // CHECK IF FOREST IS FULL BEFORE STARTING
-        const activeForest = getActiveForest();
+         const activeForest = getActiveForest();
         const aliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
         
         if (aliveCount >= activeForest.treeCount) {
             alert("This forest is complete! Please create or select a new forest to continue focusing.");
-            document.getElementById('newForestModal').style.display = 'flex'; // Open modal automatically
+            document.getElementById('newForestModal').style.display = 'flex'; 
             return;
         }
         startTimer();
@@ -559,14 +539,12 @@ function renderGardenAll() {
 }
 
 function handleTreeClick(index) {
-    // 1. Store the index globally so the "Save" button knows which tree to update
-    selectedTreeIndex = index;
+     selectedTreeIndex = index;
 
-    // 2. Get the active forest and the specific tree data
+ 
     const activeForest = getActiveForest();
     const tree = activeForest.garden[index];
 
-    // 3. Get references to Modal elements
     const modal = document.getElementById('treeModal');
     const nameInput = document.getElementById('treeNameInput');
     const saveBtn = document.getElementById('saveTreeBtn');
@@ -575,34 +553,28 @@ function handleTreeClick(index) {
     const deadDetails = document.getElementById('deadDetails');
     const modalStats = document.getElementById('modalStats');
 
-    // 4. Reset the Save button visibility (only shows if name is edited)
     saveBtn.style.display = 'none';
 
-    // 5. Check if the tree is Dead or Alive
     if (tree.status === 'dead') {
-        // --- WASTELAND VIEW ---
         aliveDetails.style.display = 'none';
         deadDetails.style.display = 'block';
         modalEmoji.textContent = '🪾';
         
         nameInput.value = "Wasteland";
-        nameInput.disabled = true; // Prevent renaming dead slots
+        nameInput.disabled = true; 
         nameInput.style.background = "transparent";
         nameInput.style.border = "none";
     } else {
-        // --- RESTORED TREE VIEW ---
         aliveDetails.style.display = 'block';
         deadDetails.style.display = 'none';
         modalEmoji.textContent = '🌳';
 
-        // Setup renaming logic
         originalName = tree.name || "Focus Tree";
         nameInput.value = originalName;
         nameInput.disabled = false;
         nameInput.style.background = "rgba(0,0,0,0.03)";
         nameInput.style.border = "1px solid rgba(0,0,0,0.1)";
 
-        // Display the specific stats for this tree
         modalStats.innerHTML = `
             <div style="margin-top:10px;">
                 <p><strong>Restored:</strong> ${tree.fullDate}</p>
@@ -612,11 +584,9 @@ function handleTreeClick(index) {
         `;
     }
 
-    // 6. Show the modal
     modal.style.display = 'flex';
 }
 
-// Check for changes to show/hide Save button
 document.getElementById('treeNameInput').addEventListener('input', (e) => {
     const saveBtn = document.getElementById('saveTreeBtn');
     const currentName = e.target.value;
@@ -642,13 +612,11 @@ function closeModal() {
     document.getElementById('treeModal').style.display = 'none';
 }
 
-// Close modal if clicking background
 document.getElementById('treeModal').onclick = (e) => {
     if (e.target.id === 'treeModal') closeModal();
 };
 
 function renderStats() {
-    // Count every alive tree in every forest in the state
     const allAliveTrees = state.forests.reduce((sum, forest) => {
         return sum + forest.garden.filter(t => t.status === 'alive').length;
     }, 0);
@@ -663,13 +631,11 @@ function renderLeaderboard() {
     const userForestsContainer = document.getElementById('userForests');
     if (!leaderboardList) return;
 
-    // 1. Calculate stats based on the new isComplete property
     const completedForestsArray = state.forests.filter(f => f.isComplete);
     
     const currentUserData = {
         username: state.username,
         userId: "current_user",
-        // Only count forests that have actually been finished (9/9)
         completedForests: completedForestsArray.length, 
         totalTrees: state.forests.reduce((sum, f) => sum + f.garden.filter(t => t.status === 'alive').length, 0),
         totalMinutes: Math.round(state.totalSeconds / 60),
@@ -678,7 +644,6 @@ function renderLeaderboard() {
 
     const sortedUsers = [currentUserData];
 
-    // 2. Render Leaderboard List
     leaderboardList.innerHTML = '';
     sortedUsers.forEach((user, index) => {
         const isCurrentUser = user.userId === "current_user";
@@ -698,14 +663,12 @@ function renderLeaderboard() {
         leaderboardList.appendChild(item);
     });
 
-    // 3. Render User's Forest History (Show only completed ones or all)
     if (userForestsContainer) {
         userForestsContainer.innerHTML = '';
 
         if (completedForestsArray.length === 0) {
             userForestsContainer.innerHTML = '<div class="small muted" style="padding:20px;text-align:center">Reach 9/9 trees to complete your first forest!</div>';
         } else {
-            // Sort to show most recently completed first
             const displayForests = [...completedForestsArray].reverse();
 
             displayForests.forEach((forest, index) => {
@@ -726,7 +689,6 @@ function renderLeaderboard() {
                     <div class="forest-stats">${forest.treeCount}/${forest.treeCount} Trees</div>
                 `;
 
-                // Logic to open details for this specific forest
                 forestCard.onclick = () => openUserProfile("current_user", state.forests.indexOf(forest));
                 userForestsContainer.appendChild(forestCard);
             });
@@ -741,10 +703,8 @@ function openUserProfile(userId, forestIndex = null) {
     const profileForests = document.getElementById('profileForests');
     const forestDetailView = document.getElementById('forestDetailView');
 
-    // Get only the completed forests for the history view
     const completedForests = state.forests.filter(f => f.isComplete);
 
-    // Set basic info
     username.textContent = state.username + (userId === "current_user" ? ' (You)' : '');
     
     const totalTrees = state.forests.reduce((sum, f) => sum + f.garden.filter(t => t.status === 'alive').length, 0);
@@ -768,13 +728,11 @@ function openUserProfile(userId, forestIndex = null) {
                 <div class="forest-stats">${forest.treeCount} Trees</div>
             `;
 
-            // Pass the specific forest object to the detail view
             forestCard.onclick = () => showForestDetail(forest);
             profileForests.appendChild(forestCard);
         });
     }
 
-    // Reset view state
     forestDetailView.style.display = 'none';
     profileForests.style.display = 'grid';
     modal.style.display = 'flex';
@@ -785,11 +743,9 @@ function showForestDetail(forest) {
     const forestGridDetail = document.getElementById('forestGridDetail');
     const profileForests = document.getElementById('profileForests');
 
-    // Hide the list of forests
     profileForests.style.display = 'none';
     forestDetailView.style.display = 'block';
 
-    // 1. Style the main Detail View container to have a solid background
     forestDetailView.style.cssText = `
         background: #f8faf9; /* Light mint-tinted solid background */
         border-radius: 20px;
@@ -798,7 +754,6 @@ function showForestDetail(forest) {
         box-shadow: 0 4px 15px rgba(0,0,0,0.02);
     `;
 
-    // 2. Build the Header (Name, Stats, and Back Button)
     const aliveCount = forest.garden.filter(t => t.status === 'alive').length;
     const totalMins = forest.garden.reduce((sum, t) => sum + (t.minutes || 0), 0);
     
@@ -816,7 +771,6 @@ function showForestDetail(forest) {
         </div>
     `;
 
-    // 3. Clear and style the Grid
     forestGridDetail.innerHTML = '';
     Object.assign(forestGridDetail.style, {
         display: 'grid',
@@ -825,7 +779,6 @@ function showForestDetail(forest) {
         marginTop: '10px'
     });
 
-    // 4. Render the miniature trees
     forest.garden.forEach((tree) => {
         const treeEl = document.createElement('div');
         treeEl.style.cssText = `
@@ -858,7 +811,6 @@ function closeUserProfile() {
     document.getElementById('userProfileModal').style.display = 'none';
 }
 
-// Close user profile modal when clicking outside
 document.getElementById('userProfileModal').onclick = (e) => {
     if (e.target.id === 'userProfileModal') closeUserProfile();
 };
@@ -870,7 +822,6 @@ function renderAll() {
     renderLeaderboard();
 }
 
-// Update welcome animation to show username
 window.addEventListener('load', () => {
     const line1 = document.getElementById('line1');
     if (line1) {
@@ -878,21 +829,17 @@ window.addEventListener('load', () => {
     }
 });
 
-// Initialize everything
 loadState();
 renderAll();
 renderPresets();
 setTimerMinutes(25);
 runWelcomeAnimation();
 
-// Auto-save every 20 seconds
 setInterval(saveState, 20000);
 
-// Add this at the bottom of your script to fix existing data
-// One-time fix for existing data
+
 state.forests.forEach(f => {
     const aliveCount = f.garden.filter(t => t.status === 'alive').length;
-    // Only mark complete if it actually reached its target size
     if (aliveCount >= f.treeCount && f.treeCount > 0) {
         f.isComplete = true;
     }
