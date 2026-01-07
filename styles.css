@@ -431,382 +431,186 @@ button{font-family:inherit; border:none}
 /* ==================== */
 
 /* Base responsive adjustments */
-@media (max-width: 768px) {
+/* =========================================
+   IPHONE 13 & MOBILE PROFESSIONAL REFINEMENT
+   ========================================= */
+
+@media (max-width: 430px) {
+    :root {
+        --radius: 20px;
+    }
+
+    body {
+        /* Prevents "rubber banding" white space on scroll */
+        overscroll-behavior-y: none; 
+    }
+
     .app {
-        margin: 12px auto;
-        padding: 12px;
-        transform: translateY(0);
+        margin: 0 auto;
+        padding: 12px 16px env(safe-area-inset-bottom);
+        max-width: 100vw;
     }
-    
-    /* Topbar mobile optimization */
+
+    /* Sticky Topbar Polish */
     .topbar {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-        position: relative;
+        background: rgba(251, 247, 236, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        margin: -12px -16px 12px -16px;
+        padding: 12px 16px;
         top: 0;
+        border-bottom: 1px solid rgba(0,0,0,0.03);
     }
-    
+
     .brand {
-        padding: 12px 16px;
-        border-radius: 16px;
-        justify-content: center;
-        text-align: center;
+        padding: 8px 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
-    
+
     .logo {
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
     }
-    
-    .brand h1 {
-        font-size: 16px;
-    }
-    
-    .brand p {
-        font-size: 11px;
-    }
-    
-    /* Tabs mobile optimization */
+
+    .brand h1 { font-size: 15px; }
+
+    /* Compact Tabs - Horizontal Scrolling if needed */
     .tabs {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        width: 100%;
+        overflow-x: auto;
+        display: flex;
+        padding: 4px 2px;
+        gap: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
     }
-    
+    .tabs::-webkit-scrollbar { display: none; }
+
     .tab {
-        padding: 12px 16px;
-        font-size: 14px;
-        text-align: center;
-        border-radius: 14px;
-    }
-    
-    /* Card mobile adjustments */
-    .card {
-        padding: 20px;
-        margin-top: 18px;
-        border-radius: 20px;
-    }
-    
-    /* Grid mobile layout */
-    .grid {
-        grid-template-columns: 1fr;
-        gap: 18px;
-    }
-    
-    .rightCol {
-        order: -1;
-    }
-    
-    /* Timer mobile optimization */
-    .timerWrap {
-        padding: 20px 16px;
-        gap: 16px;
-    }
-    
-    .timerTitle {
-        font-size: 20px;
-        text-align: center;
-    }
-    
-    .timerDisplay {
-        font-size: 64px;
-        padding: 16px 28px;
-        min-width: auto;
-        width: 100%;
-        max-width: 280px;
-        letter-spacing: -1px;
-        border-width: 3px;
-    }
-    
-    .progressBarOuter {
-        width: 100%;
-        max-width: 300px;
-        height: 14px;
-    }
-    
-    /* Controls mobile optimization */
-    .controls {
-        flex-direction: column;
-        gap: 12px;
-        margin-top: 16px;
-    }
-    
-    .btnPrimary, .btnGhost {
-        width: 100%;
-        max-width: 280px;
-        padding: 14px 20px;
-        text-align: center;
-    }
-    
-    /* Preset row mobile */
-    .presetRow {
-        gap: 8px;
-    }
-    
-    .preset {
-        padding: 10px 14px;
-        font-size: 14px;
-    }
-    
-    .customInput {
-        width: 100%;
-        max-width: 140px;
-    }
-    
-    /* Stage box mobile */
-    .stageBox {
-        width: 220px;
-        height: 220px;
-        margin: 10px auto;
-        font-size: 80px;
-    }
-    
-    .stageCaption {
+        flex: 0 0 auto;
+        padding: 10px 18px;
         font-size: 13px;
     }
-    
-    /* Garden grid mobile */
-    .gardenGrid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-    
-    .gardenItem {
-        min-height: 100px;
-        padding: 12px;
-        border-radius: 14px;
-    }
-    
-    /* Stats grid mobile */
-    .statsGrid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .statCard {
-        padding: 14px;
-    }
-    
-    .statNumber {
-        font-size: 28px;
-    }
-    
-    /* Welcome overlay mobile */
-    #line1 {
-        font-size: 24px;
-    }
-    
-    #line2 {
-        font-size: 48px;
-    }
-    
-    /* Leaderboard mobile optimization */
-    .leaderboard-list {
-        gap: 8px;
-    }
-    
-    .leaderboard-item {
-        padding: 12px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .leaderboard-item .rank {
-        width: auto;
-        font-size: 18px;
-        text-align: left;
-    }
-    
-    .leaderboard-item .user-info {
-        width: 100%;
-    }
-    
-    .leaderboard-item .forest-count {
-        align-self: flex-end;
-        margin-top: -30px;
-        font-size: 12px;
-        padding: 4px 10px;
-    }
-    
-    /* Forests grid mobile */
-    .forests-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-    
-    .forest-card {
-        padding: 14px;
-    }
-    
-    .forest-card .forest-emoji {
-        font-size: 32px;
-    }
-    
-    /* Top bar mobile adjustments */
-    .top-bar {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-    }
-    
-    .brand-group {
-        flex-direction: column;
-        gap: 10px;
-        align-items: stretch;
-    }
-    
-    .user-info-chip {
-        justify-content: center;
-        padding: 8px 16px;
-    }
-    
-    /* Modal mobile */
-    .modal-card {
-        width: 95%;
-        padding: 24px 20px;
-        max-width: none;
-        margin: 20px;
-    }
-    
-    /* Custom select mobile */
-    .custom-select {
-        width: 100%;
-        padding: 10px 14px;
-    }
-    
-    /* Forest controls mobile */
-    #gardenTab .custom-select {
-        min-width: auto;
-        width: 100%;
-        margin-bottom: 10px;
-    }
-}
 
-/* Extra small devices (phones under 400px) */
-@media (max-width: 400px) {
-    .app {
-        padding: 10px;
+    /* Main Timer Section */
+    .timerWrap {
+        padding: 10px 0;
     }
-    
-    .tabs {
-        grid-template-columns: 1fr;
-    }
-    
+
     .timerDisplay {
-        font-size: 56px;
-        padding: 14px 20px;
+        font-size: 68px; /* Balanced for iPhone 13 width */
+        min-width: 100%;
+        padding: 20px 0;
+        letter-spacing: -3px;
+        border-width: 3px;
     }
-    
-    .gardenGrid {
-        grid-template-columns: 1fr;
+
+    .progressBarOuter {
+        width: 100%;
+        height: 12px;
     }
-    
-    .forests-grid {
-        grid-template-columns: 1fr;
+
+    /* Professional Control Layout */
+    .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Side-by-side buttons */
+        gap: 12px;
+        width: 100%;
     }
-    
+
+    .btnPrimary {
+        grid-column: span 2; /* Main action takes full width */
+        padding: 16px;
+        font-size: 17px;
+    }
+
+    .btnGhost {
+        padding: 14px;
+        font-size: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .presetRow {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: 100%;
+        gap: 8px;
+    }
+
+    .preset {
+        padding: 12px 0;
+        font-size: 13px;
+    }
+
+    .customInput {
+        grid-column: span 3;
+        width: 100%;
+        height: 50px; /* Easy thumb tap */
+    }
+
+    /* Visual Stage */
     .stageBox {
         width: 200px;
         height: 200px;
-        font-size: 72px;
-    }
-    
-    #line1 {
-        font-size: 20px;
-    }
-    
-    #line2 {
-        font-size: 40px;
-    }
-}
-
-/* Tablet adjustments (768px - 980px) */
-@media (min-width: 768px) and (max-width: 980px) {
-    .grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .rightCol {
-        order: -1;
-    }
-    
-    .app {
-        max-width: 95%;
-    }
-    
-    .timerDisplay {
         font-size: 80px;
+        margin: 20px auto;
     }
-}
 
-/* Landscape mode optimization */
-@media (max-height: 600px) and (orientation: landscape) {
-    .app {
-        margin: 10px auto;
-    }
-    
-    .topbar {
-        position: relative;
-        flex-direction: row;
-    }
-    
-    .tabs {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .timerWrap {
-        padding: 16px;
-    }
-    
-    .timerDisplay {
-        font-size: 60px;
-        padding: 12px 20px;
-    }
-    
+    /* Garden Grid Refinement */
     .gardenGrid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
-}
 
-/* Prevent zoom on input for mobile */
-@media (max-width: 768px) {
-    input, select, textarea {
-        font-size: 16px; /* Prevents iOS zoom */
-    }
-    
-    .customInput {
-        font-size: 16px;
-    }
-}
-
-/* Touch-friendly button sizing */
-@media (max-width: 768px) {
-    button, .btnPrimary, .btnGhost, .preset, .tab {
-        min-height: 44px; /* Apple's recommended minimum touch target */
-    }
-    
     .gardenItem {
-        min-height: 100px; /* Larger touch target */
+        min-height: 110px;
+        padding: 12px;
     }
-}
 
-/* Smooth transitions for mobile */
-@media (max-width: 768px) {
-    .card, .gardenItem, .tab, .btnPrimary, .btnGhost {
-        transition: all 0.25s ease;
+    /* Stats Grid Refinement */
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
-}
+    .statCard:last-child {
+        grid-column: span 2;
+    }
 
-/* Fix for iOS Safari */
-@supports (-webkit-touch-callout: none) {
-    .app {
-        min-height: -webkit-fill-available;
+    .statNumber { font-size: 26px; }
+
+    /* Modal for iPhone */
+    .modal-card {
+        width: 85%;
+        padding: 24px;
+        margin-bottom: 10vh; /* Lifted for keyboard comfort */
+    }
+
+    /* Welcome Screen Scaling */
+    #line1 { font-size: 20px; }
+    #line2 { font-size: 52px; letter-spacing: 1px; }
+
+    /* Leaderboard list refined */
+    .leaderboard-item {
+        padding: 14px;
     }
     
-    html, body {
-        height: -webkit-fill-available;
+    .leaderboard-item .rank { width: 25px; font-size: 16px; }
+    .leaderboard-item .forest-count { font-size: 12px; }
+}
+
+/* Fix for small button logic in Garden Tab */
+@media (max-width: 430px) {
+    #gardenTab .card div {
+        flex-direction: column !important;
+        gap: 12px;
+    }
+    #gardenTab .custom-select {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+    #createNewForestBtn {
+        width: 100%;
+        padding: 14px;
     }
 }
