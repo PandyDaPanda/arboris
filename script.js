@@ -1,24 +1,16 @@
+// --- Animation Logic ---
 function runWelcomeAnimation() {
     const overlay = document.getElementById('welcomeOverlay');
     const line1 = document.getElementById('line1');
     const line2 = document.getElementById('line2');
 
-    // Smooth static fade in
-    setTimeout(() => {
-        line1.classList.add('fade-in');
-    }, 400);
+    // Safety check in case elements are missing
+    if (!overlay || !line1 || !line2) return;
 
-    setTimeout(() => {
-        line2.classList.add('fade-in');
-    }, 1400);
-
-    setTimeout(() => {
-        overlay.classList.add('hidden');
-    }, 4000);
-
-    setTimeout(() => {
-        overlay.remove();
-    }, 5500);
+    setTimeout(() => { line1.classList.add('fade-in'); }, 400);
+    setTimeout(() => { line2.classList.add('fade-in'); }, 1400);
+    setTimeout(() => { overlay.classList.add('hidden'); }, 4000);
+    setTimeout(() => { overlay.remove(); }, 5500);
 }
 
 (function sparkle() {
@@ -49,12 +41,13 @@ function runWelcomeAnimation() {
     }
 })();
 
+// --- Constants & Config ---
 const PRESETS = [5, 10, 25, 50];
 const STORAGE_KEY = 'arboris_web_state_v2';
 const TOTAL_FOREST_SIZE = 21;
 const MAX_SAVED_FORESTS = 10;
 
- 
+// --- State Management ---
 let state = {
     username: "Guest",
     activeForestId: 0,
@@ -72,19 +65,21 @@ let state = {
     lastPlantDate: null
 };
 
- 
+let currentSessionBioData = null; // Stores bio data for the current running session
+
 function getActiveForest() {
     return state.forests.find(f => f.id === state.activeForestId) || state.forests[0];
 }
 
- 
 function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-        state = JSON.parse(raw);
+        try {
+            state = JSON.parse(raw);
+        } catch(e) { console.error("Save file corrupted", e); }
     }
     
- 
+    // Ensure structure integrity
     state.forests.forEach(f => {
         if (f.garden.length < f.treeCount) {
             while (f.garden.length < f.treeCount) {
@@ -93,13 +88,13 @@ function loadState() {
         }
     });
 
-    if (!state.activeForestId) state.activeForestId = state.forests[0].id;
+    if (!state.activeForestId && state.forests.length > 0) state.activeForestId = state.forests[0].id;
     
     updateUserUI();
     renderForestSelector();
 }
 
- 
+// --- Auth & User UI ---
 const authBtn = document.getElementById('authBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
@@ -143,7 +138,8 @@ function updateUserUI() {
 
 function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 
- document.getElementById('createNewForestBtn').onclick = () => {
+// --- Forest Management ---
+document.getElementById('createNewForestBtn').onclick = () => {
     document.getElementById('newForestModal').style.display = 'flex';
 };
 
@@ -187,25 +183,15 @@ document.getElementById('forestSelector').onchange = (e) => {
 
 function closeForestModal() { document.getElementById('newForestModal').style.display = 'none'; }
 
- const mockUsers = [
-    {
-        username: state.username,
-        userId: "current_user",
-        completedForests: 0,
-        totalTrees: 0,
-        totalMinutes: 0,
-        forests: []
-    }
-];
-
+// --- Timer Variables ---
 let timerSeconds = 25 * 60;
 let timerLeft = timerSeconds;
 let timerRunning = false;
 let timerInterval = null;
 let selectedTreeIndex = null;
 let originalName = "";
-let currentProfileUserId = null;
 
+// --- UI Elements ---
 const tabs = document.querySelectorAll('.tab');
 const tabPanels = document.querySelectorAll('.tabPanel');
 const timerDisplay = document.getElementById('timerDisplay');
@@ -223,7 +209,6 @@ const statTotalMinutes = document.getElementById('statTotalMinutes');
 const statStreak = document.getElementById('statStreak');
 
 
-
 function saveState() {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -232,6 +217,7 @@ function saveState() {
     }
 }
 
+// --- Presets & Timer Settings ---
 function renderPresets() {
     presetRow.innerHTML = '';
     PRESETS.forEach(p => {
@@ -248,10 +234,10 @@ function renderHistory() {
     const historyContainer = document.getElementById('history');
     const recentStatsContainer = document.getElementById('recentSessions');
 
-     historyContainer.innerHTML = '';
+    historyContainer.innerHTML = '';
     recentStatsContainer.innerHTML = '';
 
-     const sortedSessions = [...state.sessions].reverse();
+    const sortedSessions = [...state.sessions].reverse();
 
     if (sortedSessions.length === 0) {
         const emptyMsg = '<div class="small muted" style="padding:10px">No sessions yet.</div>';
@@ -265,22 +251,23 @@ function renderHistory() {
         const dateString = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
         const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-         const sessionHTML = `
+        const sessionHTML = `
             <div style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom:1px solid rgba(0,0,0,0.05)">
                 <div>
                     <span style="color:var(--leaf)">🌳</span> 
                     <strong>${session.minutes}m</strong>
+                    ${session.hrv ? `<span style="font-size:10px; margin-left:8px; color:var(--mint)">🧬 ${session.hrv}ms</span>` : ''}
                 </div>
                 <div class="small muted">${dateString} at ${timeString}</div>
             </div>
         `;
 
-         historyContainer.insertAdjacentHTML('beforeend', sessionHTML);
+        historyContainer.insertAdjacentHTML('beforeend', sessionHTML);
         recentStatsContainer.insertAdjacentHTML('beforeend', sessionHTML);
     });
 }
 
- document.getElementById('clearHistory').addEventListener('click', () => {
+document.getElementById('clearHistory').addEventListener('click', () => {
     if (confirm("Are you sure? This will clear your history and stats, but keep your trees.")) {
         state.sessions = [];
         state.totalSeconds = 0;
@@ -298,6 +285,7 @@ function highlightActivePreset() {
 }
 
 function setTimerMinutes(mins) {
+    if (timerRunning) return; // Prevent changing time while running
     timerSeconds = mins * 60;
     timerLeft = timerSeconds;
     updateTimerDisplay();
@@ -315,6 +303,7 @@ function applyCustomMinutes() {
 
 applyCustom.addEventListener('click', applyCustomMinutes);
 
+// --- Tabs ---
 tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
         tabs.forEach(t => t.classList.remove('active'));
@@ -323,12 +312,13 @@ tabs.forEach(tab => {
         tabPanels.forEach(p => p.style.display = 'none');
         document.getElementById(to + 'Tab').style.display = 'block';
 
-         if (to === 'leaderboard') {
+        if (to === 'leaderboard') {
             renderLeaderboard();
         }
     });
 });
 
+// --- Timer Logic ---
 function secToMMSS(s) {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -340,18 +330,72 @@ function updateTimerDisplay() {
     const pct = ((timerSeconds - timerLeft) / timerSeconds) * 100;
     progressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
 
-     if (timerLeft > 0) {
+    if (timerLeft > 0 && timerRunning) {
         stageBox.textContent = '🪾';
         stageCaption.textContent = 'Restoring the wasteland...';
-    } else {
+    } else if (timerLeft === 0) {
         stageBox.textContent = '🌳';
         stageCaption.textContent = 'Forest restored!';
+    } else {
+        stageBox.textContent = '🌱';
+        stageCaption.textContent = 'Ready to grow';
     }
 }
+
+// --- BIO SYNC LOGIC ---
+function triggerBioSync() {
+    const readings = [
+        { score: 48, label: "Fatigued", color: "#ff7675", emoji: "😴", tip: "Low recovery detected. Shorter session recommended." },
+        { score: 76, label: "Balanced", color: "#7eb38b", emoji: "😌", tip: "Nervous system stable. Ready for Standard session." },
+        { score: 94, label: "Peak Flow", color: "#1d5f2f", emoji: "🚀", tip: "Optimal coherence! High tree growth potential." }
+    ];
+    const data = readings[Math.floor(Math.random() * readings.length)];
+    currentSessionBioData = data;
+    
+    const overlay = document.createElement('div');
+    overlay.id = "bioSyncOverlay";
+    overlay.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(21,49,31,0.9);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:10000;font-family:'Quicksand',sans-serif;`;
+    
+    // Added Cancel Button here
+    overlay.innerHTML = `
+        <div style="background:white;width:90%;max-width:340px;border-radius:30px;padding:35px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);position:relative;">
+            <div style="font-size:11px;font-weight:800;color:#7eb38b;letter-spacing:3px;margin-bottom:15px;">ARBORIS BIOSYNC™</div>
+            <div style="font-size:60px;margin-bottom:15px;">${data.emoji}</div>
+            <div style="font-size:44px;font-weight:900;color:${data.color};">${data.score}<span style="font-size:18px;">ms</span></div>
+            <div style="font-weight:800;color:#333;margin-top:5px;font-size:18px;">${data.label} State</div>
+            <p style="background:#f8fbf8;padding:15px;border-radius:15px;margin:20px 0;font-size:13px;color:#555;border:1px solid #eef5ea;">"${data.tip}"</p>
+            <div style="display:flex; gap:10px;">
+                <button id="cancelBioBtn" style="flex:1; background:#eee; color:#555; border:none; padding:18px; border-radius:50px; font-weight:700; cursor:pointer;">Cancel</button>
+                <button id="confirmBioBtn" style="flex:2; background:linear-gradient(90deg,#7eb38b,#1d5f2f); color:white; border:none; padding:18px; border-radius:50px; font-weight:800; cursor:pointer;">Begin Focus</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+
+    // Confirm: Starts Timer
+    document.getElementById('confirmBioBtn').onclick = () => {
+        overlay.remove();
+        startTimer();
+    };
+
+    // Cancel: Closes overlay, does NOT start timer
+    document.getElementById('cancelBioBtn').onclick = () => {
+        overlay.remove();
+        currentSessionBioData = null;
+    };
+}
+
 function startTimer() {
     if (timerRunning) return;
+    
     timerRunning = true;
-    startStopBtn.textContent = 'Stop';
+    startStopBtn.textContent = 'Give Up'; // Changed to indicate "Stop" means quitting
+    startStopBtn.style.background = '#ff7675'; // Optional: Make it red to indicate danger
+    
+    // Disable inputs while running
+    document.querySelectorAll('.preset').forEach(b => b.style.pointerEvents = 'none');
+    
     timerInterval = setInterval(() => {
         if (timerLeft <= 0) {
             completeSession();
@@ -361,6 +405,45 @@ function startTimer() {
         updateTimerDisplay();
     }, 1000);
 }
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerLeft = timerSeconds; // Reset to original time
+    updateTimerDisplay();
+    
+    // Reset Button UI
+    startStopBtn.textContent = 'Start';
+    startStopBtn.style.background = 'var(--leaf)';
+    
+    // Re-enable inputs
+    document.querySelectorAll('.preset').forEach(b => b.style.pointerEvents = 'auto');
+    
+    currentSessionBioData = null;
+}
+
+
+startStopBtn.addEventListener('click', () => {
+    if (timerRunning) {
+        // "Pause/Cancel" Logic
+        if (confirm('Stop focusing? You will lose progress on this tree.')) {
+            stopTimer();
+        }
+    } else {
+        // "Start" Logic
+        const activeForest = getActiveForest();
+        const aliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
+        
+        if (aliveCount >= activeForest.treeCount) {
+            alert("This forest is complete! Please create or select a new forest to continue focusing.");
+            document.getElementById('newForestModal').style.display = 'flex'; 
+            return;
+        }
+        
+        // Trigger Bio Sync before starting
+        triggerBioSync();
+    }
+});
 
 function completeSession() {
     clearInterval(timerInterval);
@@ -381,21 +464,29 @@ function completeSession() {
         minutes: sessionMins,
         fullDate: `${dateStr} @ ${timeStr}`,
         growthHeight: growth,
-        name: null
+        name: null,
+        hrvScore: currentSessionBioData ? currentSessionBioData.score : 75
     };
 
-if (targetIdx !== -1) {
-    activeForest.garden[targetIdx] = newTreeData;
-    
-     const newAliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
-    
-    if (newAliveCount >= activeForest.treeCount) { 
-        activeForest.isComplete = true; 
-        activeForest.completedDate = new Date().toISOString();
-        flashForestComplete();
+    if (targetIdx !== -1) {
+        activeForest.garden[targetIdx] = newTreeData;
+        
+        const newAliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
+        
+        if (newAliveCount >= activeForest.treeCount) { 
+            activeForest.isComplete = true; 
+            activeForest.completedDate = new Date().toISOString();
+            flashForestComplete();
+        }
     }
-}
-     state.sessions.push({ when: Date.now(), success: true, minutes: sessionMins });
+    
+    state.sessions.push({ 
+        when: Date.now(), 
+        success: true, 
+        minutes: sessionMins, 
+        hrv: currentSessionBioData ? currentSessionBioData.score : null 
+    });
+    
     state.totalSeconds += timerSeconds;
 
     const todayKey = now.toISOString().slice(0, 10);
@@ -404,61 +495,26 @@ if (targetIdx !== -1) {
         state.streakCount = (state.streakCount || 0) + 1;
     }
 
+    // Reset Timer & UI
     timerLeft = timerSeconds;
+    startStopBtn.textContent = 'Start';
+    startStopBtn.style.background = 'var(--leaf)';
+    document.querySelectorAll('.preset').forEach(b => b.style.pointerEvents = 'auto');
+    
     saveState();
     flashCelebration();
     renderAll();
-    startStopBtn.textContent = 'Start';
+    currentSessionBioData = null;
 }
 
-function archiveForest() {
-     const completedForest = {
-        id: 'forest_' + Date.now(),
-        completedDate: new Date().toISOString().slice(0, 10),
-        trees: [...state.garden],
-        totalMinutes: state.garden.reduce((sum, tree) => sum + tree.minutes, 0)
-    };
-
-     state.completedForests.unshift(completedForest);
-
-     if (state.completedForests.length > MAX_SAVED_FORESTS) {
-        state.completedForests.pop();
-    }
-
-     const currentUser = mockUsers.find(u => u.userId === "current_user");
-    if (currentUser) {
-        currentUser.completedForests++;
-        currentUser.totalTrees += TOTAL_FOREST_SIZE;
-        currentUser.totalMinutes += completedForest.totalMinutes;
-        currentUser.forests.unshift(completedForest);
-    }
-
-    state.garden = Array(TOTAL_FOREST_SIZE).fill().map(() => ({
-        status: 'dead',
-        createdAt: null,
-        minutes: 0,
-        fullDate: null,
-        growthHeight: 0
-    }));
-
-     flashForestComplete();
-}
-
+// --- Effects ---
 function flashCelebration() {
     const el = document.createElement('div');
     el.textContent = '🌳 Life Restored!';
     Object.assign(el.style, {
-        position: 'fixed',
-        left: '50%',
-        top: '14%',
-        transform: 'translateX(-50%)',
-        background: 'white',
-        padding: '12px 18px',
-        borderRadius: '12px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-        zIndex: 9999,
-        fontWeight: 800,
-        transition: 'opacity 0.5s'
+        position: 'fixed', left: '50%', top: '14%', transform: 'translateX(-50%)',
+        background: 'white', padding: '12px 18px', borderRadius: '12px',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.1)', zIndex: 9999, fontWeight: 800, transition: 'opacity 0.5s'
     });
     document.body.appendChild(el);
     setTimeout(() => el.style.opacity = '0', 1200);
@@ -469,20 +525,10 @@ function flashForestComplete() {
     const el = document.createElement('div');
     el.textContent = '🎉 FOREST COMPLETED! 🎉';
     Object.assign(el.style, {
-        position: 'fixed',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        background: 'linear-gradient(90deg, var(--mint), var(--leaf))',
-        padding: '20px 30px',
-        borderRadius: '18px',
-        boxShadow: '0 25px 50px rgba(0,0,0,0.2)',
-        zIndex: 9999,
-        fontWeight: 800,
-        color: 'white',
-        fontSize: '24px',
-        textAlign: 'center',
-        transition: 'opacity 0.5s, transform 0.5s'
+        position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+        background: 'linear-gradient(90deg, var(--mint), var(--leaf))', padding: '20px 30px',
+        borderRadius: '18px', boxShadow: '0 25px 50px rgba(0,0,0,0.2)', zIndex: 9999,
+        fontWeight: 800, color: 'white', fontSize: '24px', textAlign: 'center', transition: 'opacity 0.5s, transform 0.5s'
     });
     document.body.appendChild(el);
     setTimeout(() => {
@@ -492,27 +538,7 @@ function flashForestComplete() {
     setTimeout(() => el.remove(), 2500);
 }
 
-startStopBtn.addEventListener('click', () => {
-    if (timerRunning) {
-        if (!confirm('Stop and lose progress?')) return;
-        clearInterval(timerInterval);
-        timerRunning = false;
-        timerLeft = timerSeconds;
-        updateTimerDisplay();
-        startStopBtn.textContent = 'Start';
-    } else {
-         const activeForest = getActiveForest();
-        const aliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
-        
-        if (aliveCount >= activeForest.treeCount) {
-            alert("This forest is complete! Please create or select a new forest to continue focusing.");
-            document.getElementById('newForestModal').style.display = 'flex'; 
-            return;
-        }
-        startTimer();
-    }
-});
-
+// --- Grid Rendering ---
 function renderGardenAll() {
     const activeForest = getActiveForest();
     gardenGridAll.innerHTML = '';
@@ -528,6 +554,7 @@ function renderGardenAll() {
         el.innerHTML = `
             <div style="font-size:32px">${emoji}</div>
             <div class="status-label">${label}</div>
+            ${t.hrvScore ? `<div style="font-size:9px; font-weight:800; color:var(--leaf); margin-top:2px;">🧬 ${t.hrvScore}ms</div>` : ''}
         `;
 
         el.onclick = () => handleTreeClick(index);
@@ -538,10 +565,9 @@ function renderGardenAll() {
     totalTreesLabel.textContent = `${aliveCount} / ${activeForest.treeCount}`;
 }
 
+// --- Tree Modal & Editing ---
 function handleTreeClick(index) {
-     selectedTreeIndex = index;
-
- 
+    selectedTreeIndex = index;
     const activeForest = getActiveForest();
     const tree = activeForest.garden[index];
 
@@ -580,6 +606,7 @@ function handleTreeClick(index) {
                 <p><strong>Restored:</strong> ${tree.fullDate}</p>
                 <p><strong>Focus Time:</strong> ${tree.minutes}m</p>
                 <p><strong>Growth:</strong> ${tree.growthHeight}ft</p>
+                ${tree.hrvScore ? `<p><strong>Bio-Score:</strong> ${tree.hrvScore}ms HRV</p>` : ''}
             </div>
         `;
     }
@@ -601,7 +628,8 @@ document.getElementById('treeNameInput').addEventListener('input', (e) => {
 document.getElementById('saveTreeBtn').onclick = () => {
     const newName = document.getElementById('treeNameInput').value;
     if (selectedTreeIndex !== null) {
-        state.garden[selectedTreeIndex].name = newName;
+        const activeForest = getActiveForest();
+        activeForest.garden[selectedTreeIndex].name = newName;
         saveState();
         renderGardenAll();
         closeModal();
@@ -616,6 +644,7 @@ document.getElementById('treeModal').onclick = (e) => {
     if (e.target.id === 'treeModal') closeModal();
 };
 
+// --- Stats & Leaderboard ---
 function renderStats() {
     const allAliveTrees = state.forests.reduce((sum, forest) => {
         return sum + forest.garden.filter(t => t.status === 'alive').length;
@@ -667,7 +696,7 @@ function renderLeaderboard() {
         userForestsContainer.innerHTML = '';
 
         if (completedForestsArray.length === 0) {
-            userForestsContainer.innerHTML = '<div class="small muted" style="padding:20px;text-align:center">Reach 9/9 trees to complete your first forest!</div>';
+            userForestsContainer.innerHTML = '<div class="small muted" style="padding:20px;text-align:center">Reach trees goal to complete your first forest!</div>';
         } else {
             const displayForests = [...completedForestsArray].reverse();
 
@@ -696,6 +725,7 @@ function renderLeaderboard() {
     }
 }
 
+// --- User Profile & Forest Detail ---
 function openUserProfile(userId, forestIndex = null) {
     const modal = document.getElementById('userProfileModal');
     const username = document.getElementById('profileUsername');
@@ -747,7 +777,7 @@ function showForestDetail(forest) {
     forestDetailView.style.display = 'block';
 
     forestDetailView.style.cssText = `
-        background: #f8faf9; /* Light mint-tinted solid background */
+        background: #f8faf9;
         border-radius: 20px;
         padding: 20px;
         border: 1px solid rgba(0,0,0,0.05);
@@ -788,10 +818,14 @@ function showForestDetail(forest) {
             text-align: center;
             border: 1px solid rgba(0,0,0,0.03);
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            position: relative;
         `;
 
         const emoji = tree.status === 'alive' ? '🌳' : '🪾';
+        const bioBadge = tree.hrvScore ? `<div style="position:absolute;top:-5px;right:-5px;background:var(--leaf);color:white;font-size:8px;padding:2px 5px;border-radius:10px;">🧬 ${tree.hrvScore}</div>` : '';
+
         treeEl.innerHTML = `
+            ${bioBadge}
             <div style="font-size:22px;">${emoji}</div>
             <div style="font-size:10px; font-weight:800; color:var(--leaf); margin-top:4px;">${tree.minutes || 0}m</div>
         `;
@@ -815,6 +849,7 @@ document.getElementById('userProfileModal').onclick = (e) => {
     if (e.target.id === 'userProfileModal') closeUserProfile();
 };
 
+// --- Initialization ---
 function renderAll() {
     renderGardenAll();
     renderStats();
@@ -836,7 +871,6 @@ setTimerMinutes(25);
 runWelcomeAnimation();
 
 setInterval(saveState, 20000);
-
 
 state.forests.forEach(f => {
     const aliveCount = f.garden.filter(t => t.status === 'alive').length;
