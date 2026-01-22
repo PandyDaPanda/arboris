@@ -1,10 +1,9 @@
-// --- Animation Logic ---
 function runWelcomeAnimation() {
     const overlay = document.getElementById('welcomeOverlay');
     const line1 = document.getElementById('line1');
     const line2 = document.getElementById('line2');
 
-    // Safety check in case elements are missing
+
     if (!overlay || !line1 || !line2) return;
 
     setTimeout(() => { line1.classList.add('fade-in'); }, 400);
@@ -41,13 +40,13 @@ function runWelcomeAnimation() {
     }
 })();
 
-// --- Constants & Config ---
+
 const PRESETS = [5, 10, 25, 50];
 const STORAGE_KEY = 'arboris_web_state_v2';
 const TOTAL_FOREST_SIZE = 21;
 const MAX_SAVED_FORESTS = 10;
 
-// --- State Management ---
+
 let state = {
     username: "Guest",
     activeForestId: 0,
@@ -65,7 +64,7 @@ let state = {
     lastPlantDate: null
 };
 
-let currentSessionBioData = null; // Stores bio data for the current running session
+let currentSessionBioData = null; 
 
 function getActiveForest() {
     return state.forests.find(f => f.id === state.activeForestId) || state.forests[0];
@@ -79,7 +78,6 @@ function loadState() {
         } catch(e) { console.error("Save file corrupted", e); }
     }
     
-    // Ensure structure integrity
     state.forests.forEach(f => {
         if (f.garden.length < f.treeCount) {
             while (f.garden.length < f.treeCount) {
@@ -94,7 +92,7 @@ function loadState() {
     renderForestSelector();
 }
 
-// --- Auth & User UI ---
+
 const authBtn = document.getElementById('authBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
@@ -138,7 +136,6 @@ function updateUserUI() {
 
 function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
 
-// --- Forest Management ---
 document.getElementById('createNewForestBtn').onclick = () => {
     document.getElementById('newForestModal').style.display = 'flex';
 };
@@ -183,7 +180,7 @@ document.getElementById('forestSelector').onchange = (e) => {
 
 function closeForestModal() { document.getElementById('newForestModal').style.display = 'none'; }
 
-// --- Timer Variables ---
+
 let timerSeconds = 25 * 60;
 let timerLeft = timerSeconds;
 let timerRunning = false;
@@ -191,7 +188,6 @@ let timerInterval = null;
 let selectedTreeIndex = null;
 let originalName = "";
 
-// --- UI Elements ---
 const tabs = document.querySelectorAll('.tab');
 const tabPanels = document.querySelectorAll('.tabPanel');
 const timerDisplay = document.getElementById('timerDisplay');
@@ -217,7 +213,6 @@ function saveState() {
     }
 }
 
-// --- Presets & Timer Settings ---
 function renderPresets() {
     presetRow.innerHTML = '';
     PRESETS.forEach(p => {
@@ -285,7 +280,7 @@ function highlightActivePreset() {
 }
 
 function setTimerMinutes(mins) {
-    if (timerRunning) return; // Prevent changing time while running
+    if (timerRunning) return; 
     timerSeconds = mins * 60;
     timerLeft = timerSeconds;
     updateTimerDisplay();
@@ -303,7 +298,6 @@ function applyCustomMinutes() {
 
 applyCustom.addEventListener('click', applyCustomMinutes);
 
-// --- Tabs ---
 tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
         tabs.forEach(t => t.classList.remove('active'));
@@ -318,7 +312,6 @@ tabs.forEach(tab => {
     });
 });
 
-// --- Timer Logic ---
 function secToMMSS(s) {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -337,12 +330,11 @@ function updateTimerDisplay() {
         stageBox.textContent = '🌳';
         stageCaption.textContent = 'Forest restored!';
     } else {
-        stageBox.textContent = '🌱';
+        stageBox.textContent = '🪾';
         stageCaption.textContent = 'Ready to grow';
     }
 }
 
-// --- BIO SYNC LOGIC ---
 function triggerBioSync() {
     const readings = [
         { score: 48, label: "Fatigued", color: "#ff7675", emoji: "😴", tip: "Low recovery detected. Shorter session recommended." },
@@ -356,7 +348,6 @@ function triggerBioSync() {
     overlay.id = "bioSyncOverlay";
     overlay.style.cssText = `position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(21,49,31,0.9);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:10000;font-family:'Quicksand',sans-serif;`;
     
-    // Added Cancel Button here
     overlay.innerHTML = `
         <div style="background:white;width:90%;max-width:340px;border-radius:30px;padding:35px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);position:relative;">
             <div style="font-size:11px;font-weight:800;color:#7eb38b;letter-spacing:3px;margin-bottom:15px;">ARBORIS BIOSYNC™</div>
@@ -373,13 +364,12 @@ function triggerBioSync() {
     
     document.body.appendChild(overlay);
 
-    // Confirm: Starts Timer
+
     document.getElementById('confirmBioBtn').onclick = () => {
         overlay.remove();
         startTimer();
     };
 
-    // Cancel: Closes overlay, does NOT start timer
     document.getElementById('cancelBioBtn').onclick = () => {
         overlay.remove();
         currentSessionBioData = null;
@@ -390,10 +380,10 @@ function startTimer() {
     if (timerRunning) return;
     
     timerRunning = true;
-    startStopBtn.textContent = 'Give Up'; // Changed to indicate "Stop" means quitting
-    startStopBtn.style.background = '#ff7675'; // Optional: Make it red to indicate danger
+    startStopBtn.textContent = 'Give Up';
+    startStopBtn.style.background = '#ff7675'; 
     
-    // Disable inputs while running
+
     document.querySelectorAll('.preset').forEach(b => b.style.pointerEvents = 'none');
     
     timerInterval = setInterval(() => {
@@ -409,14 +399,13 @@ function startTimer() {
 function stopTimer() {
     clearInterval(timerInterval);
     timerRunning = false;
-    timerLeft = timerSeconds; // Reset to original time
+    timerLeft = timerSeconds;
     updateTimerDisplay();
     
-    // Reset Button UI
+
     startStopBtn.textContent = 'Start';
     startStopBtn.style.background = 'var(--leaf)';
     
-    // Re-enable inputs
     document.querySelectorAll('.preset').forEach(b => b.style.pointerEvents = 'auto');
     
     currentSessionBioData = null;
@@ -425,12 +414,11 @@ function stopTimer() {
 
 startStopBtn.addEventListener('click', () => {
     if (timerRunning) {
-        // "Pause/Cancel" Logic
+
         if (confirm('Stop focusing? You will lose progress on this tree.')) {
             stopTimer();
         }
     } else {
-        // "Start" Logic
         const activeForest = getActiveForest();
         const aliveCount = activeForest.garden.filter(t => t.status === 'alive').length;
         
@@ -439,8 +427,7 @@ startStopBtn.addEventListener('click', () => {
             document.getElementById('newForestModal').style.display = 'flex'; 
             return;
         }
-        
-        // Trigger Bio Sync before starting
+
         triggerBioSync();
     }
 });
@@ -495,7 +482,6 @@ function completeSession() {
         state.streakCount = (state.streakCount || 0) + 1;
     }
 
-    // Reset Timer & UI
     timerLeft = timerSeconds;
     startStopBtn.textContent = 'Start';
     startStopBtn.style.background = 'var(--leaf)';
@@ -507,7 +493,6 @@ function completeSession() {
     currentSessionBioData = null;
 }
 
-// --- Effects ---
 function flashCelebration() {
     const el = document.createElement('div');
     el.textContent = '🌳 Life Restored!';
@@ -538,7 +523,6 @@ function flashForestComplete() {
     setTimeout(() => el.remove(), 2500);
 }
 
-// --- Grid Rendering ---
 function renderGardenAll() {
     const activeForest = getActiveForest();
     gardenGridAll.innerHTML = '';
@@ -565,7 +549,6 @@ function renderGardenAll() {
     totalTreesLabel.textContent = `${aliveCount} / ${activeForest.treeCount}`;
 }
 
-// --- Tree Modal & Editing ---
 function handleTreeClick(index) {
     selectedTreeIndex = index;
     const activeForest = getActiveForest();
@@ -644,7 +627,6 @@ document.getElementById('treeModal').onclick = (e) => {
     if (e.target.id === 'treeModal') closeModal();
 };
 
-// --- Stats & Leaderboard ---
 function renderStats() {
     const allAliveTrees = state.forests.reduce((sum, forest) => {
         return sum + forest.garden.filter(t => t.status === 'alive').length;
@@ -725,7 +707,6 @@ function renderLeaderboard() {
     }
 }
 
-// --- User Profile & Forest Detail ---
 function openUserProfile(userId, forestIndex = null) {
     const modal = document.getElementById('userProfileModal');
     const username = document.getElementById('profileUsername');
@@ -849,7 +830,6 @@ document.getElementById('userProfileModal').onclick = (e) => {
     if (e.target.id === 'userProfileModal') closeUserProfile();
 };
 
-// --- Initialization ---
 function renderAll() {
     renderGardenAll();
     renderStats();
